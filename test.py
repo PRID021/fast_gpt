@@ -8,14 +8,16 @@ import requests
 
 url = 'http://127.0.0.1:8000/chat'
 
+question = "Tell me some joke stories."
+params = {"message":question}
 async def get_json_events():
     async with aiohttp.ClientSession() as session:
-        async with session.get(url=url) as resp:
+        async with session.get(url=url,params = params) as resp:
             while True:
                 chunk = await resp.content.readline()
                 if not chunk:
                     break
-                yield json.loads(chunk.decode("utf-8"))
+                yield chunk.decode("utf-8")
 async def main():
     async for event in get_json_events():
         print(event)
