@@ -3,6 +3,8 @@ import os
 from pydantic import BaseModel
 
 
+
+
 client = OpenAI(
      api_key=os.environ.get("OPENAI_API_KEY"),
 )
@@ -28,5 +30,4 @@ async def sendQuestion(message: str):
         stream=True,
     )
     async for chunk in stream:
-        yield (chunk.choices[0].delta.content or "") +"\n"
-
+        yield (chunk.choices[0].delta.content or "")

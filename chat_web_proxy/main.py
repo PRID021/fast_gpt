@@ -10,12 +10,23 @@ import json
 from openai import OpenAI, AsyncOpenAI
 import os
 import asyncio
+from utils import async_client, sendQuestion
+from fastapi.middleware.cors import CORSMiddleware
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 T = TypeVar("T")
 
 app = FastAPI()
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class Response(BaseModel,Generic[T]):
     status_code: int
@@ -29,18 +40,9 @@ class MessageResponse(BaseModel):
     def toJson(self):
         return json.dumps({"event_id": self.event_id,"data": self.data,"is_last_event":self.is_last_event})
     
-async_client = AsyncOpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY")
-)
-
-async def sendQuestion(message: str):
-    stream = await async_client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": message}],
-        stream=True,
-    )
-    async for chunk in stream:
-        yield (chunk.choices[0].delta.content or "")
+@app.get("/")
+def hello():
+    return "hello"
 
 @app.get("/chat",tags=["CHAT"])
 async def chat_stream(message: str):
