@@ -1,5 +1,5 @@
-from typing import Union
-from fastapi import FastAPI
+from typing import Union,Annotated
+from fastapi import FastAPI, Depends, HTTPException,status
 from pydantic import BaseModel
 from datetime import datetime
 from http import HTTPStatus
@@ -10,12 +10,14 @@ import json
 from openai import OpenAI, AsyncOpenAI
 import os
 import asyncio
+from models import User, UserInDb
 from utils import async_client, sendQuestion
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
+from fake_users_db import *
 
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-T = TypeVar("T")
 
 app = FastAPI()
 origins = ["*"]
@@ -28,22 +30,56 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class Response(BaseModel,Generic[T]):
-    status_code: int
-    message: str
-    data: Optional[T] = None
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+   
 
-class MessageResponse(BaseModel):
-    event_id: int
-    data: str
-    is_last_event: bool
-    def toJson(self):
-        return json.dumps({"event_id": self.event_id,"data": self.data,"is_last_event":self.is_last_event})
+
+def fake_hash_password(password: str):
+    return "fakehashed" + password
+
+def get_user(db,username: str):
+    if username in db:
+        user_dict = db[username]
+        return UserInDb(**user_dict)
     
-@app.get("/")
-def hello():
-    return "hello"
+def fake_decode_token(token):
+    # This doesn't provide any security at all
+    # Check the next version
+    user = get_user(fake_users_db,token)
+    return user
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    user = fake_decode_token(token=token)
+    if not user:
+        raise HTTPException(
+            status_code= status.HTTP_401_UNAUTHORIZED,
+            detail= "Invalid authentication credentials",
+            headers={"WWW-Authenticate":"Bearer"}
+        )
+    return user
+
+async def get_current_active_user(current_user: Annotated[User,Depends(get_current_user)]):
+    if current_user.disabled:
+        raise HTTPException(status_code=400,detail="Inactive user")
+    return current_user
+
+
+
+@app.post("/token",tags=["Authenticate"])
+async def login(form_data: Annotated[OAuth2PasswordRequestForm,Depends()]):
+    user_dict = fake_users_db.get(form_data.username)
+    if not user_dict:
+        raise HTTPException(status_code=400,detail="Incorrect username or password")
+    user = UserInDb(**user_dict)
+    hashed_password = fake_hash_password(form_data.password)
+    if not hashed_password == user.hashed_password:
+        raise HTTPException(status_code=400,detail="Incorrect username or password")
+    return {"access_token":user.username,"token_type":"bearer"}
+
+@app.get("/users/me",tags=["Profile"])
+async def read_users_me(current_users: Annotated[User,Depends(get_current_active_user)]):
+    return current_users
 
 @app.get("/chat",tags=["CHAT"])
-async def chat_stream(message: str):
+async def chat_stream(message: str,token: Annotated[str, Depends(oauth2_scheme)]):
     return StreamingResponse(sendQuestion(message=message),media_type="application/x-ndjson")
