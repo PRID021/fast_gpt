@@ -1,14 +1,11 @@
 import subprocess
 from typing import Union,Annotated
 from fastapi import FastAPI, Depends, HTTPException,status
-from pydantic import BaseModel
 from datetime import datetime
-from http import HTTPStatus
-from typing import Any, Generic, TypeVar,Optional
 from fastapi.responses import StreamingResponse
 from openai import OpenAI, AsyncOpenAI
-from models import Token, TokenData, User, UserInDb
-from utils import async_client, sendQuestion
+from model.models import Token, TokenData, User, UserInDb
+from utils import  sendQuestion
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from datetime import datetime, timedelta, timezone
@@ -110,6 +107,7 @@ async def get_current_active_user(current_user: Annotated[User,Depends(get_curre
 
 @app.post("/token",tags=["Authenticate"])
 async def login(form_data: Annotated[OAuth2PasswordRequestForm,Depends()]) -> Token:
+    print(form_data)
     user = authenticate_user(fake_db=fake_users_db,username= form_data.username,password=form_data.password)
     if not user:
         raise HTTPException(

@@ -1,22 +1,9 @@
 from openai import OpenAI, AsyncOpenAI
 import os
-from pydantic import BaseModel
-
-
 
 
 client = OpenAI(
      api_key=os.environ.get("OPENAI_API_KEY"),
-)
-
-chat_completion = client.chat.completions.create(
-    messages= [
-        {
-            "role": "user",
-            "content": "Say this is a test"
-        }
-    ],
-    model="gpt-3.5-turbo",
 )
 
 async_client = AsyncOpenAI(
@@ -25,7 +12,7 @@ async_client = AsyncOpenAI(
 
 async def sendQuestion(message: str):
     stream = await async_client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-3.5-turbo-0125",
         messages=[{"role": "user", "content": message}],
         stream=True,
     )
