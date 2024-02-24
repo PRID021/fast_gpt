@@ -2,8 +2,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
 
-from utils import async_client, get_current_active_user
+from data import models
+from utils import async_client, get_current_active_user, get_dp
 
 router = APIRouter(
     prefix="/chat",
@@ -22,9 +24,9 @@ async def sendQuestion(message: str):
         yield (chunk.choices[0].delta.content or "")
 
 
-@router.get("", tags=["Chat Service"])
+@router.get("/", tags=["Chat Service"])
 async def chat_stream(
-    message: str, token: Annotated[str, Depends(get_current_active_user)]
+    message: str, _: Annotated[models.User, Depends(get_current_active_user)]
 ):
     return StreamingResponse(
         sendQuestion(message=message), media_type="text/event-stream"

@@ -15,22 +15,3 @@ T = TypeVar("T")
 #     def toJson(self):
 #         return json.dumps({"event_id": self.event_id,"data": self.data,"is_last_event":self.is_last_event})
     
-
-
-class User(BaseModel):
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    disabled: bool | None = None
-    
-
-class UserInDb(User):
-    hashed_password: str
-
-
-class TokenData(BaseModel):
-    username: str | None = None
-class Token(BaseModel):
-    access_token: str
-    token_type: str    
-
