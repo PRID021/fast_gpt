@@ -3,4 +3,5 @@ uvicorn
 openai
 python-multipart
 python-jose[cryptography]
-passlib[bcrypt]
+passlib
+bcrypt===4.0.1
