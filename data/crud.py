@@ -48,7 +48,7 @@ def create_user_conversation(
 
 
 def create_conversation_message(
-    db: Session, message: schemas.Message, conversation_id: int
+    db: Session, message: schemas.MessageCreate, conversation_id: int
 ):
     db_item = models.Message(**message.dict(), conversation_id=conversation_id)
     db.add(db_item)
