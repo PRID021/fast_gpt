@@ -1,7 +1,13 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, LargeBinary, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, LargeBinary, String, Enum
 from sqlalchemy.orm import relationship
 
 from .database import Base
+import enum
+
+
+class Sender(int, enum.Enum):
+    HU = 0
+    AI = 1
 
 
 class User(Base):
@@ -28,6 +34,7 @@ class Message(Base):
     __tablename__ = "messages"
     id = Column(Integer, primary_key=True)
     content = Column(String, index=True)
+    sender = Column(Enum(Sender))
     conversation_id = Column(Integer, ForeignKey("conversations.id"))
     conversation = relationship("Conversation", back_populates="messages")
 

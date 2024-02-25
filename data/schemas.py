@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -34,19 +35,23 @@ class Token(BaseModel):
 
 
 # Message
+class Sender(int, Enum):
+    HU = 0
+    AI = 1
+
+
 class MessageBase(BaseModel):
-    pass
+    sender: Sender
 
 
 class MessageCreate(MessageBase):
+
     content: str
 
 
-class Message(MessageBase):
+class Message(MessageCreate):
     id: int
-    content: str
-    conversation_id: int
-
+    # conversation_id: int
     class Config:
         orm_mode = True
 
@@ -65,7 +70,9 @@ class Conversation(ConversationBase):
     messages: list[Message]
 
     class Config:
+        allow_population_by_field_name = True
         orm_mode = True
+        use_enum_values = True
 
 
 class UserBase(BaseModel):

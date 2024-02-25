@@ -5,6 +5,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from data import crud, models, schemas
+from data.database import get_session
+
 from utils import async_client, get_current_active_user, get_dp
 
 tags = ["Chat Service"]
@@ -26,9 +28,9 @@ async def sendQuestion(message: str, poster):
     async for chunk in stream:
         data = chunk.choices[0].delta.content or ""
         content += data
-        print(content)
         yield (data)
-    poster(content)
+    poster(message,schemas.Sender.HU)
+    poster(content,schemas.Sender.AI)
 
 
 @router.get("", tags=tags)
@@ -36,11 +38,10 @@ async def chat_stream(
     conversation_id: int,
     message: str,
     _: Annotated[models.User, Depends(get_current_active_user)],
-    db: Session = Depends(get_dp),
 ):
-    def poster(complete_message: str):
-
-        request_create_message = schemas.MessageCreate(content=complete_message)
+    def poster(complete_message: str, sender: schemas.Sender):
+        db = get_session()
+        request_create_message = schemas.MessageCreate(content=complete_message,sender= sender,id=None)
         crud.create_conversation_message(
             db=db, conversation_id=conversation_id, message=request_create_message
         )
