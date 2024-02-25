@@ -26,11 +26,12 @@ async def sendQuestion(message: str, poster):
     async for chunk in stream:
         data = chunk.choices[0].delta.content or ""
         content += data
+        print(content)
         yield (data)
     poster(content)
 
 
-@router.get("/", tags=tags)
+@router.get("", tags=tags)
 async def chat_stream(
     conversation_id: int,
     message: str,
@@ -38,12 +39,11 @@ async def chat_stream(
     db: Session = Depends(get_dp),
 ):
     def poster(complete_message: str):
-        
+
         request_create_message = schemas.MessageCreate(content=complete_message)
         crud.create_conversation_message(
             db=db, conversation_id=conversation_id, message=request_create_message
         )
-
     return StreamingResponse(
         sendQuestion(message=message, poster=poster), media_type="text/event-stream"
     )
