@@ -24,7 +24,7 @@ from utils import (
 models.Base.metadata.create_all(bind=engine)
 
 
-app = FastAPI()
+app = FastAPI(title="Fast GPT", description="Hand-on practice python and openai")
 origins = ["*"]
 
 app.add_middleware(
@@ -34,7 +34,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 
 @app.post("/token", tags=["Authenticate"])
