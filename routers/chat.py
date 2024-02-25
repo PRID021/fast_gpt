@@ -35,9 +35,10 @@ async def chat_stream(
     conversation_id: int,
     message: str,
     _: Annotated[models.User, Depends(get_current_active_user)],
+    db: Session = Depends(get_dp),
 ):
     def poster(complete_message: str):
-        db = get_dp()
+        
         request_create_message = schemas.MessageCreate(content=complete_message)
         crud.create_conversation_message(
             db=db, conversation_id=conversation_id, message=request_create_message

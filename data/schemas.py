@@ -1,4 +1,25 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, Field
+
+# Upload file
+
+
+class UploadAvatarBase(BaseModel):
+    filename: str
+    contents: bytes
+
+
+class CreateUploadAvatar(UploadAvatarBase):
+    user_id: int
+
+
+class UploadAvatar(UploadAvatarBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
 
 # Token
 
@@ -59,6 +80,7 @@ class User(UserBase):
     id: int
     conversations: list[Conversation] = []
     disabled: bool
+    avatar: Optional[UploadAvatar] = None
 
     class Config:
         orm_mode = True

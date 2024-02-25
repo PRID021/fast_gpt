@@ -1,3 +1,6 @@
+from typing import Optional
+
+from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from utils import pwd_context
@@ -18,7 +21,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def create_user(db: Session, user: schemas.UserCreate):
+def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     hashed_password = pwd_context.hash(user.password)
     db_user = models.User(username=user.username, hashed_password=hashed_password)
     db.add(db_user)
@@ -55,3 +58,16 @@ def create_conversation_message(
     db.commit()
     db.refresh(db_item)
     return db_item
+
+
+# Upload File
+
+
+def upload_file(db: Session, file: schemas.CreateUploadAvatar) -> models.UserAvatar:
+    db_file = models.UserAvatar(
+        filename=file.filename, contents=file.contents, owner_id=file.user_id
+    )
+    db.add(db_file)
+    db.commit()
+    db.refresh(db_file)
+    return db_file

@@ -1,6 +1,5 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import relationship
-
 from .database import Base
 
 
@@ -12,6 +11,7 @@ class User(Base):
     disabled = Column(Boolean, default=False)
     hashed_password = Column(String)
     conversations = relationship("Conversation", back_populates="owner")
+    avatar = relationship("UserAvatar", back_populates="owner")
 
 
 class Conversation(Base):
@@ -29,3 +29,12 @@ class Message(Base):
     content = Column(String, index=True)
     conversation_id = Column(Integer, ForeignKey("conversations.id"))
     conversation = relationship("Conversation", back_populates="messages")
+
+
+class UserAvatar(Base):
+    __tablename__ = "user_avatar"
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String)
+    contents = Column(LargeBinary)
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="avatar")
