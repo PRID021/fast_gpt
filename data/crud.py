@@ -24,9 +24,14 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     hashed_password = pwd_context.hash(user.password)
     db_user = models.User(username=user.username, hashed_password=hashed_password)
+    db_avatar = models.UserAvatar(
+        filename="default_avatar.png", owner=db_user, contents=b""
+    )
     db.add(db_user)
+    db.add(db_avatar)
     db.commit()
     db.refresh(db_user)
+    db_user.avatar = db_avatar
     return db_user
 
 

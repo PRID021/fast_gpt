@@ -1,5 +1,6 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import relationship
+
 from .database import Base
 
 
@@ -11,7 +12,7 @@ class User(Base):
     disabled = Column(Boolean, default=False)
     hashed_password = Column(String)
     conversations = relationship("Conversation", back_populates="owner")
-    avatar = relationship("UserAvatar", back_populates="owner")
+    avatar = relationship("UserAvatar", back_populates="owner", uselist=False)
 
 
 class Conversation(Base):
