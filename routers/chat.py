@@ -2,12 +2,23 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import StreamingResponse
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_openai import ChatOpenAI
 from sqlalchemy.orm import Session
 
 from data import crud, models, schemas
 from data.database import get_session
+from utils import  get_current_active_user, get_dp
 
-from utils import async_client, get_current_active_user, get_dp
+llm = ChatOpenAI(temperature=0.9)
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("user", "{input}"),
+    ]
+)
 
 tags = ["Chat Service"]
 
@@ -18,35 +29,47 @@ router = APIRouter(
 )
 
 
-async def sendQuestion(message: str, poster):
-    stream = await async_client.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
-        messages=[{"role": "user", "content": message}],
-        stream=True,
-    )
+async def sendQuestion(user: models.User, in_message: str, poster):
+    chat_history = []
+    for message in user.conversations[-1].messages:
+        if message.sender == schemas.Sender.HU:
+            chat_history.append(HumanMessage(content=message.content))
+        else:
+            chat_history.append(AIMessage(content=message.content))
+    history_chain = prompt | llm
+    
+    for m in chat_history:
+        print(m.content)
     content = ""
-    async for chunk in stream:
-        data = chunk.choices[0].delta.content or ""
+    for chunk in history_chain.stream(
+        {"chat_history": chat_history, "input": in_message}
+    ):
+        data = chunk.content
         content += data
-        yield (data)
-    poster(message,schemas.Sender.HU)
-    poster(content,schemas.Sender.AI)
-
+        yield data
+    
+    poster(complete_message = in_message,sender = schemas.Sender.HU)
+    poster(complete_message = content, sender = schemas.Sender.AI)
+    
 
 @router.get("", tags=tags)
 async def chat_stream(
     conversation_id: int,
     message: str,
-    _: Annotated[models.User, Depends(get_current_active_user)],
+    user: Annotated[models.User, Depends(get_current_active_user)],
 ):
     def poster(complete_message: str, sender: schemas.Sender):
         db = get_session()
-        request_create_message = schemas.MessageCreate(content=complete_message,sender= sender,id=None)
+        request_create_message = schemas.MessageCreate(
+            content=complete_message, sender=sender, id=None
+        )
         crud.create_conversation_message(
             db=db, conversation_id=conversation_id, message=request_create_message
         )
+
     return StreamingResponse(
-        sendQuestion(message=message, poster=poster), media_type="text/event-stream"
+        sendQuestion(user=user, message=message, poster=poster),
+        media_type="text/event-stream",
     )
 
 
