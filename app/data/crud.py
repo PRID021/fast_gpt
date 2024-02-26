@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
-from utils import pwd_context
+from app.utils import pwd_context
 
 from . import models, schemas
 

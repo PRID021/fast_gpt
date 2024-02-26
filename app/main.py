@@ -12,7 +12,7 @@ from data.schemas import Token
 
 # routers
 from routers import authenticate, chat, profile
-from utils import (
+from app.utils import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     authenticate_user,
     create_access_token,
