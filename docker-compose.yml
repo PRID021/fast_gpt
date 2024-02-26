@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: server
+    volumes:
+      - ./app:/server/app
+    env_file:
+      - .env
+    ports:
+      - 80:14433

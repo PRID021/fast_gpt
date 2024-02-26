@@ -1,10 +1,20 @@
-FROM python:3.11
+# 
+FROM python:3.11-buster AS builder
 
-WORKDIR /code
-COPY ./requirements.txt /code/requirements.txt
+# 
+WORKDIR /server
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+# 
+COPY ./requirements.txt /server/requirements.txt
 
-COPY ./app /code/app
+# 
+RUN pip install --no-cache-dir --upgrade -r /server/requirements.txt
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+# 
+COPY ./app /server/app
+
+# 
+FROM builder AS development
+WORKDIR /server/app
+ENV ENVIRONMENT=development
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80","--reload"]

@@ -36,7 +36,7 @@ def bash_read():
 
 SECRET_KEY = bash_read()
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 20
+ACCESS_TOKEN_EXPIRE_MINUTES = 200
 
 
 def verify_password(plain_password, hashed_password):
