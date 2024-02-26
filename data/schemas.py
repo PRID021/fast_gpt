@@ -45,12 +45,12 @@ class MessageBase(BaseModel):
 
 
 class MessageCreate(MessageBase):
-
     content: str
 
 
 class Message(MessageCreate):
     id: int
+
     # conversation_id: int
     class Config:
         orm_mode = True

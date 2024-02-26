@@ -1,8 +1,9 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, LargeBinary, String, Enum
+import enum
+
+from sqlalchemy import Boolean, Column, Enum, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import relationship
 
 from .database import Base
-import enum
 
 
 class Sender(int, enum.Enum):

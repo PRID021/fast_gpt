@@ -9,17 +9,9 @@ from sqlalchemy.orm import Session
 
 from data import crud, models, schemas
 from data.database import get_session
-from utils import  get_current_active_user, get_dp
+from utils import get_current_active_user, get_dp
 
 llm = ChatOpenAI(temperature=0.9)
-
-prompt = ChatPromptTemplate.from_messages(
-    [
-        MessagesPlaceholder(variable_name="chat_history"),
-        ("user", "{input}"),
-    ]
-)
-
 tags = ["Chat Service"]
 
 router = APIRouter(
@@ -34,23 +26,30 @@ async def sendQuestion(user: models.User, in_message: str, poster):
     for message in user.conversations[-1].messages:
         if message.sender == schemas.Sender.HU:
             chat_history.append(HumanMessage(content=message.content))
+            # print(f"from chat history with role HU: {message.content}")
         else:
+            # print(f"from chat history with role AI: {message.content}")
             chat_history.append(AIMessage(content=message.content))
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("user", "{input}"),
+        ]
+    )
     history_chain = prompt | llm
-    
-    for m in chat_history:
-        print(m.content)
+
     content = ""
     for chunk in history_chain.stream(
-        {"chat_history": chat_history, "input": in_message}
+        {"chat_history": chat_history, "input": f"{in_message}"}
     ):
         data = chunk.content
         content += data
         yield data
-    
-    poster(complete_message = in_message,sender = schemas.Sender.HU)
-    poster(complete_message = content, sender = schemas.Sender.AI)
-    
+
+    poster(complete_message=in_message, sender=schemas.Sender.HU)
+    poster(complete_message=content, sender=schemas.Sender.AI)
+
 
 @router.get("", tags=tags)
 async def chat_stream(
@@ -61,14 +60,17 @@ async def chat_stream(
     def poster(complete_message: str, sender: schemas.Sender):
         db = get_session()
         request_create_message = schemas.MessageCreate(
-            content=complete_message, sender=sender, id=None
+            sender=sender,
+            content=complete_message,
         )
         crud.create_conversation_message(
-            db=db, conversation_id=conversation_id, message=request_create_message
+            db=db,
+            message=request_create_message,
+            conversation_id=conversation_id,
         )
 
     return StreamingResponse(
-        sendQuestion(user=user, message=message, poster=poster),
+        sendQuestion(user=user, in_message=message, poster=poster),
         media_type="text/event-stream",
     )
 
