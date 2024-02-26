@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.orm import Session
 
 from data import crud, models, schemas
-from app.utils import get_current_active_user, get_dp
+from utils import get_current_active_user, get_dp
 
 router = APIRouter(
     prefix="/user",
