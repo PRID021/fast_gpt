@@ -10,7 +10,6 @@ router = APIRouter(
     responses={status.HTTP_404_NOT_FOUND: {"description": "Not found"}},
 )
 
-
 @router.post("/register", tags=["Authenticate"], response_model=schemas.User)
 def create_new_account(user: schemas.UserCreate, db: Session = Depends(get_dp)):
     db_user = crud.get_user_by_username(db=db, username=user.username)

@@ -1,17 +1,15 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from data import crud, models, schemas
+from data.database import get_session
+from dotenv import load_dotenv
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from sqlalchemy.orm import Session
-
-from data import crud, models, schemas
-from data.database import get_session
 from utils import get_current_active_user, get_dp
-from dotenv import load_dotenv
-
 
 load_dotenv()
 
@@ -61,16 +59,30 @@ async def chat_stream(
     message: str,
     user: Annotated[models.User, Depends(get_current_active_user)],
 ):
+    def check_message():
+        user_conversations: list[models.Conversation] = user.conversations
+        for conversation in user_conversations:
+            if conversation.id == conversation_id:
+                return True
+        return False
+
     def poster(complete_message: str, sender: schemas.Sender):
         db = get_session()
         request_create_message = schemas.MessageCreate(
             sender=sender,
             content=complete_message,
         )
-        crud.create_conversation_message(
+        created_message = crud.create_conversation_message(
             db=db,
             message=request_create_message,
             conversation_id=conversation_id,
+        )
+
+
+    if not check_message():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not found conversation",
         )
 
     return StreamingResponse(
@@ -91,7 +103,9 @@ async def create_new_conversation(
     return conversation
 
 
-@router.get("/conversation", tags=tags, response_model=list[schemas.Conversation])
+@router.get(
+    "/conversation", tags=tags, response_model=list[schemas.ConversationResponse]
+)
 def get_user_conversations(
     current_active_user: Annotated[models.User, Depends(get_current_active_user)],
 ):

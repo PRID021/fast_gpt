@@ -12,4 +12,4 @@ services:
     env_file:
       - .env
     ports:
-      - 80:14433
+      - 3001:8080

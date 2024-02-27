@@ -1,6 +1,4 @@
-from typing import Optional
 
-from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from utils import pwd_context
@@ -27,6 +25,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     db_avatar = models.UserAvatar(
         filename="default_avatar.png", owner=db_user, contents=b""
     )
+    
     db.add(db_user)
     db.add(db_avatar)
     db.commit()
@@ -45,7 +44,7 @@ def get_conversations(db: Session, skip: int = 0, limit: int = 100):
 def create_user_conversation(
     db: Session, conversation: schemas.ConversationCreate, user_id: int
 ):
-    db_item = models.Conversation(**conversation.dict(), owner_id=user_id)
+    db_item = models.Conversation(**conversation.model_dump(), owner_id=user_id)
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
@@ -58,7 +57,10 @@ def create_user_conversation(
 def create_conversation_message(
     db: Session, message: schemas.MessageCreate, conversation_id: int
 ):
-    db_item = models.Message(**message.dict(), conversation_id=conversation_id)
+    db_item = models.Message(**message.model_dump(), conversation_id=conversation_id)
+    conversation = db.query(models.Conversation).filter(models.Conversation.id == conversation_id).first()
+    if conversation.title == "":
+        conversation.title = message.content
     db.add(db_item)
     db.commit()
     db.refresh(db_item)

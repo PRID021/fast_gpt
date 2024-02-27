@@ -63,7 +63,9 @@ class ConversationBase(BaseModel):
 class ConversationCreate(ConversationBase):
     title: str
 
-
+class ConversationResponse(ConversationBase):
+    id: int
+    title: str
 class Conversation(ConversationBase):
     id: int
     title: str
