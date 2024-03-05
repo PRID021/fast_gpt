@@ -1,11 +1,21 @@
 version: '3.4'
 
 services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: gptservice
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
   server:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
     container_name: server
     volumes:
       - ./app:/server/app
@@ -13,3 +23,8 @@ services:
       - .env
     ports:
       - 3001:8080
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
