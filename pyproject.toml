@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = ""
+authors = ["hoang.pham <hoang.pham@executionlab.asia>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.110.0"
+uvicorn = "^0.27.1"
+openai = "^1.13.3"
+python-multipart = "^0.0.9"
+python-jose = "^3.3.0"
+cryptography = "^42.0.5"
+passlib = "^1.7.4"
+bcrypt = "=4.0.1"
+langchain = "^0.1.9"
+langchain-openai = "^0.0.8"
+python-dotenv = "^1.0.1"
+google-generativeai = "^0.4.0"
+google-cloud-secret-manager = "^2.18.2"
+alembic = "^1.13.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

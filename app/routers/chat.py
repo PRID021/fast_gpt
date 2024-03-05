@@ -1,17 +1,15 @@
-from typing import Annotated
+from typing import Annotated, List
 
-from data import crud, models, schemas
-from data.database import get_session
-from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from sqlalchemy.orm import Session
-from utils import get_current_active_user, get_dp
 
-load_dotenv()
+from app.data import crud, models, schemas
+from app.data.database import get_session
+from app.utils import get_current_active_user, get_dp
 
 llm = ChatOpenAI(temperature=0.9)
 tags = ["Chat Service"]
@@ -78,7 +76,6 @@ async def chat_stream(
             conversation_id=conversation_id,
         )
 
-
     if not check_message():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -110,3 +107,20 @@ def get_user_conversations(
     current_active_user: Annotated[models.User, Depends(get_current_active_user)],
 ):
     return current_active_user.conversations
+
+
+@router.get(
+    "/conversation/{conversation_id}", tags=tags
+    # , response_model=list[schemas.Message]
+)
+def get_conversation_messages(
+    conversation_id,
+    current_active_user: Annotated[models.User, Depends(get_current_active_user)],
+):
+    user_conversations: List[models.Conversation] = current_active_user.conversations
+    for conversation in user_conversations:
+        if conversation.id == int(conversation_id):
+            return conversation.messages
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail="Can't found conversation"
+    )

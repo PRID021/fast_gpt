@@ -6,13 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from data import crud, models, schemas
-from data.database import engine
-from data.schemas import Token
+from app.data import crud, models, schemas
+from app.data.database import engine
+from app.data.schemas import Token
 
 # routers
-from routers import authenticate, chat, profile
-from utils import (
+from app.routers import authenticate, chat, profile,gemi
+from app.utils import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     authenticate_user,
     create_access_token,
@@ -60,6 +60,7 @@ async def login(
 app.include_router(authenticate.router)
 app.include_router(profile.router)
 app.include_router(chat.router)
+# app.include_router(gemi.router)
 
 
 if __name__ == "__main__":

@@ -2,12 +2,12 @@ import textwrap
 from typing import Annotated
 
 import google.generativeai as genai
-from data import models
+from app.data import models
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import StreamingResponse
 from google.cloud import secretmanager
 from IPython.display import Markdown
-from utils import get_current_active_user, get_dp
+from app.utils import get_current_active_user, get_dp
 
 
 def to_markdown(text):

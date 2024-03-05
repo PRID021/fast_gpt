@@ -1,9 +1,9 @@
 import enum
-
-from data.database import Base
-from sqlalchemy import Boolean, Column, Enum, ForeignKey, Integer, LargeBinary, String
+from sqlalchemy import Boolean, Column, Enum, ForeignKey, Integer, LargeBinary, String,DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 
+Base = declarative_base()
 
 class Sender(int, enum.Enum):
     HU = 0
@@ -17,6 +17,7 @@ class Message(Base):
     sender = Column(Enum(Sender))
     conversation_id = Column(Integer, ForeignKey("conversations.id"))
     conversation = relationship("Conversation", back_populates="messages")
+    created_at = Column(DateTime,nullable=True)
 
 
 class UserAvatar(Base):
