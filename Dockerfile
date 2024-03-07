@@ -1,16 +1,21 @@
 FROM python:3.11.3
 
-ENV PYTHONUNBUFFERED True
 
-RUN pip install --upgrade pip
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r  requirements.txt
+WORKDIR /server
 
-ENV APP_HOME /root
-WORKDIR $APP_HOME
-COPY /app $APP_HOME/app
+RUN pip install poetry==1.5.1
 
-WORKDIR $APP_HOME
+RUN poetry config virtualenvs.create false
+
+COPY ./pyproject.toml ./poetry.lock* ./
+
+RUN poetry install --no-interaction --no-ansi --no-root --no-directory
+
+COPY . .
+
+RUN poetry install --no-interaction --no-ansi
+
 
 EXPOSE 8080
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+
+CMD exec uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload --forwarded-allow-ips '*' && alembic upgrade head

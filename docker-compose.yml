@@ -9,9 +9,9 @@ services:
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: gptservice
     ports:
-      - "5432:5432"
+      - 5432:5432
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
   server:
     build:
       context: .
@@ -19,6 +19,7 @@ services:
     container_name: server
     volumes:
       - ./app:/server/app
+      - ./migrations:/server/migrations
     env_file:
       - .env
     ports:
