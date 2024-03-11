@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.orm import Session
 
-from app.data import crud, models, schemas
-from app.utils import get_current_active_user, get_dp
+from ..data import crud, models, schemas
+from ..utils import get_current_active_user, get_dp
 
 router = APIRouter(
     prefix="/user",

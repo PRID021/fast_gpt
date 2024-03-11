@@ -7,11 +7,11 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from sqlalchemy.orm import Session
 
-from app.data import crud, models, schemas
-from app.data.database import get_session
-from app.utils import get_current_active_user, get_dp
+from ..data import crud, models, schemas
+from ..data.database import get_session
+from ..utils import OPENAI_API_KEY, get_current_active_user, get_dp
 
-llm = ChatOpenAI(temperature=0.9)
+llm = ChatOpenAI(temperature=0.9, model="gpt-3.5-turbo-0.125", api_key=OPENAI_API_KEY)
 tags = ["Chat Service"]
 
 router = APIRouter(
@@ -110,7 +110,8 @@ def get_user_conversations(
 
 
 @router.get(
-    "/conversation/{conversation_id}", tags=tags
+    "/conversation/{conversation_id}",
+    tags=tags,
     # , response_model=list[schemas.Message]
 )
 def get_conversation_messages(

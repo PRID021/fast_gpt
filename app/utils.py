@@ -6,20 +6,17 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-
 # from openai import AsyncOpenAI, OpenAI
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-
-from app.data import crud, models, schemas
-from app.data.database import SessionLocal
-from dotenv import load_dotenv
-
-
-load_dotenv()
+from google.cloud import secretmanager
+from .data import crud, models, schemas
+from .data.database import SessionLocal
+from  .setting import settings
 
 
-DB_URI = os.environ["POSTGRES_DB_URI"]
+OPENAI_API_KEY = settings.OPENAI_API_KEY
+GEMINI_API_KEY = settings.GEMINI_API_KEY
 
 
 # Dependency
