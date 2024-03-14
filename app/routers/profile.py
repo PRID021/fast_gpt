@@ -22,7 +22,7 @@ async def read_users_me(
 
 @router.post(
     "/me/uploadfile/",
-    response_model=schemas.UploadAvatar,
+    # response_model=schemas.UploadAvatar,
     description="Upload image file for user avatar",
     summary="Use to upload user avatar",
 )
@@ -31,11 +31,12 @@ async def create_upload_file(
     current_users: Annotated[models.User, Depends(get_current_active_user)],
     db: Session = Depends(get_dp),
 ):
+    contents = await file.read()
     create_upload_avatar = schemas.CreateUploadAvatar(
-        filename=file.filename, contents=file.file.read(), user_id=current_users.id
+        filename=file.filename, contents=contents, user_id=current_users.id
     )
     file_upload = crud.upload_file(db=db, file=create_upload_avatar)
-    return file_upload
+    return file_upload.owner_id
 
 
 @router.get("/me/items")

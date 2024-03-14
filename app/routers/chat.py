@@ -11,7 +11,7 @@ from ..data import crud, models, schemas
 from ..data.database import get_session
 from ..utils import OPENAI_API_KEY, get_current_active_user, get_dp
 
-llm = ChatOpenAI(temperature=0.9, model="gpt-3.5-turbo-0.125", api_key=OPENAI_API_KEY)
+llm = ChatOpenAI(temperature=0.9, model="gpt-3.5-turbo-0125", api_key=OPENAI_API_KEY)
 tags = ["Chat Service"]
 
 router = APIRouter(

@@ -21,7 +21,7 @@ def to_markdown(text):
 
 
 genai.configure(api_key=GEMINI_API_KEY)
-gemini_pro_vision_model = genai.GenerativeModel("gemini-pro")
+gemini_pro_vision_model = genai.GenerativeModel("gemini-pro",generation_config=None)
 
 
 router_tag = "Gemi"

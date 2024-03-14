@@ -43,7 +43,7 @@ def upgrade() -> None:
             EXECUTE PROCEDURE function_set_created_at();
         """
     ))
-    op.add_column('messages', sa.Column('created_at', sa.DateTime, nullable=True, server_default=sa.func.now()))
+    # op.add_column('messages', sa.Column('created_at', sa.DateTime, nullable=True, server_default=sa.func.now()))
     # This part will update the existing rows to set the created_at column
     op.execute("UPDATE messages SET created_at = NOW() WHERE created_at IS NULL")
 
