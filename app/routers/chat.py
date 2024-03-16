@@ -88,7 +88,7 @@ async def chat_stream(
     )
 
 
-@router.post("/conversation", tags=tags, response_model=schemas.Conversation)
+@router.post("/conversation", tags=tags, response_model=schemas.ConversationResponse)
 async def create_new_conversation(
     current_user: Annotated[models.User, Depends(get_current_active_user)],
     db: Session = Depends(get_dp),
