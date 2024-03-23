@@ -34,6 +34,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 def bash_read():
+    return "hoangsecret"
     child = subprocess.Popen("openssl rand -hex 32".split(), stdout=subprocess.PIPE)
     bytes_string = child.communicate()[0]  # stdout content
     return bytes_string.decode()

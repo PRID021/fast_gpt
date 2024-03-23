@@ -2,6 +2,8 @@ from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
+from langchain import hub
+from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
@@ -10,8 +12,32 @@ from sqlalchemy.orm import Session
 from ..data import crud, models, schemas
 from ..data.database import get_session
 from ..utils import OPENAI_API_KEY, get_current_active_user, get_dp
+from .tools import delay, multiply, send_notification
 
-llm = ChatOpenAI(temperature=0.9, model="gpt-3.5-turbo-0125", api_key=OPENAI_API_KEY)
+llm = ChatOpenAI(
+    temperature=0.9, model="gpt-3.5-turbo-0125", streaming=True, api_key=OPENAI_API_KEY
+)
+prompt = hub.pull("hwchase17/openai-tools-agent")
+
+# prompt =  (
+#     ChatPromptTemplate.from_messages(
+#         [
+#             MessagesPlaceholder(variable_name="chat_history"),
+#             ("user", "{input}"),
+#         ]
+#     )
+
+# )
+
+
+tools = [multiply, send_notification, delay]
+# Construct the OpenAI Tools agent
+agent = create_openai_tools_agent(llm, tools, prompt)
+
+agent_executor = AgentExecutor(
+    agent=agent, tools=tools, verbose=True, return_intermediate_steps=True
+)
+
 tags = ["Chat Service"]
 
 router = APIRouter(
@@ -31,21 +57,16 @@ async def sendQuestion(user: models.User, in_message: str, poster):
             # print(f"from chat history with role AI: {message.content}")
             chat_history.append(AIMessage(content=message.content))
 
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            MessagesPlaceholder(variable_name="chat_history"),
-            ("user", "{input}"),
-        ]
-    )
-    history_chain = prompt | llm
-
     content = ""
-    for chunk in history_chain.stream(
-        {"chat_history": chat_history, "input": f"{in_message}"}
+    async for event in agent_executor.astream_events(
+        {"chat_history": chat_history, "input": f"{in_message}"}, version="v1"
     ):
-        data = chunk.content
-        content += data
-        yield data
+        kind = event["event"]
+        if kind == "on_chat_model_stream":
+            data = event["data"]["chunk"].content
+            if data:
+                content += data
+                yield data
 
     poster(complete_message=in_message, sender=schemas.Sender.HU)
     poster(complete_message=content, sender=schemas.Sender.AI)

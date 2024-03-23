@@ -29,6 +29,7 @@ langchain-core = "^0.1.30"
 pydantic-settings = "^2.2.1"
 cloud-sql-python-connector = {extras = ["asyncpg"], version = "^1.7.0"}
 pg8000 = "^1.30.5"
+langchainhub = "^0.1.15"
 
 
 

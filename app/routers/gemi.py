@@ -17,9 +17,6 @@ def to_markdown(text):
     return Markdown(textwrap.indent(text, "> ", predicate=lambda _: True))
 
 
-
-
-
 genai.configure(api_key=GEMINI_API_KEY)
 gemini_pro_vision_model = genai.GenerativeModel("gemini-pro",generation_config=None)
 
