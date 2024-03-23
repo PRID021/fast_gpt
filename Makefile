@@ -34,3 +34,10 @@ prod_migrate:
 
 downgrate:
 	docker compose exec server poetry run alembic downgrade -1
+
+pip_clear:
+	pip freeze --exclude-editable | xargs pip uninstall -y
+poetry_install:
+	poetry lock --no-update
+	poetry install
+	poetry export -f requirements.txt --output requirements.txt
