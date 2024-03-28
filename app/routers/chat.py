@@ -5,7 +5,7 @@ from fastapi.responses import StreamingResponse
 from langchain import hub
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
 from langchain_openai import ChatOpenAI
 from sqlalchemy.orm import Session
 
@@ -13,24 +13,35 @@ from ..data import crud, models, schemas
 from ..data.database import get_session
 from ..utils import OPENAI_API_KEY, get_current_active_user, get_dp
 from .tools import delay, multiply, send_notification
+from langchain.tools.retriever import create_retriever_tool
+from langchain_community.document_loaders import TextLoader
+from langchain_community.vectorstores import FAISS
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+from langchain_openai import OpenAIEmbeddings
 
 llm = ChatOpenAI(
     temperature=0.9, model="gpt-3.5-turbo-0125", streaming=True, api_key=OPENAI_API_KEY
 )
 prompt = hub.pull("hwchase17/openai-tools-agent")
 
-# prompt =  (
-#     ChatPromptTemplate.from_messages(
-#         [
-#             MessagesPlaceholder(variable_name="chat_history"),
-#             ("user", "{input}"),
-#         ]
-#     )
+#  Retrieval step ingest .
+embeddings_model = OpenAIEmbeddings()
+text_splitter = RecursiveCharacterTextSplitter()
+loader = TextLoader("index.md")
+docs = loader.load()
+documents = text_splitter.split_documents(docs)
+vector = FAISS.from_documents(documents, embeddings_model)
+retriever = vector.as_retriever()
 
-# )
+retriever_tool = create_retriever_tool(
+    retriever,
+    "hoang_search",
+    "Search for information about Hoang Pham. For any questions about Hoang, you must use this tool!",
+)
 
 
-tools = [multiply, send_notification, delay]
+tools = [retriever_tool, multiply, send_notification, delay]
 # Construct the OpenAI Tools agent
 agent = create_openai_tools_agent(llm, tools, prompt)
 
@@ -52,11 +63,8 @@ async def sendQuestion(user: models.User, in_message: str, poster):
     for message in user.conversations[-1].messages:
         if message.sender == schemas.Sender.HU:
             chat_history.append(HumanMessage(content=message.content))
-            # print(f"from chat history with role HU: {message.content}")
         else:
-            # print(f"from chat history with role AI: {message.content}")
             chat_history.append(AIMessage(content=message.content))
-
     content = ""
     async for event in agent_executor.astream_events(
         {"chat_history": chat_history, "input": f"{in_message}"}, version="v1"
