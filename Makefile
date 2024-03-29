@@ -38,6 +38,8 @@ downgrate:
 pip_clear:
 	pip freeze --exclude-editable | xargs pip uninstall -y
 poetry_install:
+	pip install langchainhub
+	pip install poetry
 	poetry lock --no-update
 	poetry install
 	poetry export -f requirements.txt --output requirements.txt

@@ -4,26 +4,32 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from langchain import hub
 from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain.agents.format_scratchpad.openai_tools import (
+    format_to_openai_tool_messages,
+)
+from langchain.agents.output_parsers.openai_tools import OpenAIToolsAgentOutputParser
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.tools.render import render_text_description
+from langchain.tools.retriever import create_retriever_tool
+from langchain_community.document_loaders import TextLoader
+from langchain_community.vectorstores import FAISS
 from langchain_core.messages import AIMessage, HumanMessage
-
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sqlalchemy.orm import Session
 
 from ..data import crud, models, schemas
 from ..data.database import get_session
 from ..utils import OPENAI_API_KEY, get_current_active_user, get_dp
-from .tools import delay, multiply, send_notification
-from langchain.tools.retriever import create_retriever_tool
-from langchain_community.document_loaders import TextLoader
-from langchain_community.vectorstores import FAISS
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-from langchain_openai import OpenAIEmbeddings
+from .tools import create_account, delay, multiply, send_notification
 
 llm = ChatOpenAI(
     temperature=0.9, model="gpt-3.5-turbo-0125", streaming=True, api_key=OPENAI_API_KEY
 )
-prompt = hub.pull("hwchase17/openai-tools-agent")
+
+# Create prompt
+# prompt = hub.pull("hwchase17/openai-tools-agent")
+
 
 #  Retrieval step ingest .
 embeddings_model = OpenAIEmbeddings()
@@ -41,9 +47,46 @@ retriever_tool = create_retriever_tool(
 )
 
 
-tools = [retriever_tool, multiply, send_notification, delay]
+tools = [retriever_tool, multiply, send_notification, delay, create_account]
+llm_with_tools = llm.bind_tools(tools)
+rendered_tools = render_text_description(tools)
+system_prompt = f"""You are an assistant that has access to the following set of tools. Here are the names and descriptions for each tool:
+
+{rendered_tools}
+
+Given the user input, you have decide they asking for the tools or not.
+If they asking for the tool, return your response as a JSON blob with 'name' and 'arguments' keys, if user missing some content ask them only for missing content.
+If not response them appropriate.
+"""
+MEMORY_KEY = "chat_history"
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            system_prompt,
+        ),
+        MessagesPlaceholder(variable_name=MEMORY_KEY),
+        ("user", "{input}"),
+        MessagesPlaceholder(variable_name="agent_scratchpad"),
+    ]
+)
+
 # Construct the OpenAI Tools agent
-agent = create_openai_tools_agent(llm, tools, prompt)
+# agent = create_openai_tools_agent(llm, tools, prompt)
+
+agent = (
+    {
+        "input": lambda x: x["input"],
+        "agent_scratchpad": lambda x: format_to_openai_tool_messages(
+            x["intermediate_steps"]
+        ),
+        "chat_history": lambda x: x["chat_history"],
+    }
+    | prompt
+    | llm_with_tools
+    | OpenAIToolsAgentOutputParser()
+)
 
 agent_executor = AgentExecutor(
     agent=agent, tools=tools, verbose=True, return_intermediate_steps=True

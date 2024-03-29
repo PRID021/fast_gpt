@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.get("/me", tags=["Profile"], response_model=schemas.User)
+@router.get("/me", tags=["Profile"], response_model=schemas.UserResponse)
 async def read_users_me(
     current_users: Annotated[models.User, Depends(get_current_active_user)]
 ):
