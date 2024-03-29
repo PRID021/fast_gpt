@@ -27,11 +27,7 @@ llm = ChatOpenAI(
     temperature=0.9, model="gpt-3.5-turbo-0125", streaming=True, api_key=OPENAI_API_KEY
 )
 
-# Create prompt
-# prompt = hub.pull("hwchase17/openai-tools-agent")
 
-
-#  Retrieval step ingest .
 embeddings_model = OpenAIEmbeddings()
 text_splitter = RecursiveCharacterTextSplitter()
 loader = TextLoader("index.md")
@@ -42,8 +38,8 @@ retriever = vector.as_retriever()
 
 retriever_tool = create_retriever_tool(
     retriever,
-    "hoang_search",
-    "Search for information about Hoang Pham. For any questions about Hoang, you must use this tool!",
+    "owner_of_this_project",
+    "Search for information about owner of this project. For any questions about owner of project or the information about developer of the project, you must use this tool!",
 )
 
 
@@ -55,12 +51,9 @@ system_prompt = f"""You are an assistant that has access to the following set of
 {rendered_tools}
 
 Given the user input, you have decide they asking for the tools or not. \
-If they asking for the tool` with the content fulfill for the tool invocation.\
-return your response as a JSON blob with 'name' and 'arguments' keys.
-If user missing some content ask them only for missing content.
-
-If not response them appropriate.
-
+If they asking for the tool with the content fulfill for the tool invocation, ask them if they really want to perform this tool.\
+If user missing some content for using this tool, ask them only for missing content until all content fulfill.
+If they not ask for the tool response them appropriate.
 
 """
 MEMORY_KEY = "chat_history"
@@ -76,9 +69,6 @@ prompt = ChatPromptTemplate.from_messages(
         MessagesPlaceholder(variable_name="agent_scratchpad"),
     ]
 )
-
-# Construct the OpenAI Tools agent
-# agent = create_openai_tools_agent(llm, tools, prompt)
 
 agent = (
     {
@@ -152,6 +142,8 @@ async def chat_stream(
             message=request_create_message,
             conversation_id=conversation_id,
         )
+        
+        print(f"created_message: {created_message}")
 
     if not check_message():
         raise HTTPException(
