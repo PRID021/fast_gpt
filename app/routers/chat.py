@@ -54,9 +54,14 @@ system_prompt = f"""You are an assistant that has access to the following set of
 
 {rendered_tools}
 
-Given the user input, you have decide they asking for the tools or not.
-If they asking for the tool, return your response as a JSON blob with 'name' and 'arguments' keys, if user missing some content ask them only for missing content.
+Given the user input, you have decide they asking for the tools or not. \
+If they asking for the tool` with the content fulfill for the tool invocation.\
+return your response as a JSON blob with 'name' and 'arguments' keys.
+If user missing some content ask them only for missing content.
+
 If not response them appropriate.
+
+
 """
 MEMORY_KEY = "chat_history"
 
