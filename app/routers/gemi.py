@@ -5,7 +5,6 @@ from typing import Annotated
 import google.generativeai as genai
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import StreamingResponse
-
 from IPython.display import Markdown
 
 from app.data import models
@@ -18,7 +17,10 @@ def to_markdown(text):
 
 
 genai.configure(api_key=GEMINI_API_KEY)
-gemini_pro_vision_model = genai.GenerativeModel("gemini-pro",generation_config=None)
+gemini_pro_vision_model = genai.GenerativeModel(
+    "gemini-pro",
+    generation_config={"temperature": 0, "max_output_tokens": 400},
+)
 
 
 router_tag = "Gemi"
@@ -39,7 +41,8 @@ async def sendQuestion(in_message: str):
 
 @router.get("/gemi", tags=[router_tag])
 async def sendMessage(
-    message: str, _: Annotated[models.User, Depends(get_current_active_user)]
+    message: str,
+    # _: Annotated[models.User, Depends(get_current_active_user)]
 ):
     return StreamingResponse(
         sendQuestion(in_message=message),

@@ -1,3 +1,4 @@
+import json
 from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -51,9 +52,28 @@ system_prompt = f"""You are an assistant that has access to the following set of
 {rendered_tools}
 
 Given the user input, you have decide they asking for the tools or not. \
-If they asking for the tool with the content fulfill for the tool invocation, ask them if they really want to perform this tool.\
+If they asking for the tool with the content fulfill for the tool invocation.\
 If user missing some content for using this tool, ask them only for missing content until all content fulfill.
-If they not ask for the tool response them appropriate.
+Remember, if you have all information to perform any these tools, you must asking user to confirm these information and the action to take.
+
+Here is an example:
+
+```
+    User: I want to create an form for my account?
+    AI: Sure!, I can use `create_account` tool to help you, can you provide your username, email, and address \
+        After have enough information, I will help you to create an form to new account.
+    User: My name is Hoang, I live in California and my email is hoang.pham@executionlab.asia
+    AI: I have your all information to create an new form account, Please confirm the  correct  information \
+        Your username is : hoang
+        Your email is: hoang.pham@executionlab.asia
+        Your address is: California
+        Is that right?
+```
+If the user answer yes or Yes or anything that similar for that, you can invoke the tool with all information you have.\
+Otherwise please answer user appropriately.
+
+
+If they not ask for the tool or the information of the owner of this project, reject the question and  response them appropriate.
 
 """
 MEMORY_KEY = "chat_history"
@@ -142,7 +162,7 @@ async def chat_stream(
             message=request_create_message,
             conversation_id=conversation_id,
         )
-        
+
         print(f"created_message: {created_message}")
 
     if not check_message():
