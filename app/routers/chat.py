@@ -40,7 +40,7 @@ retriever = vector.as_retriever()
 retriever_tool = create_retriever_tool(
     retriever,
     "owner_of_this_project",
-    "Search for information about owner of this project. For any questions about owner of project or the information about developer of the project, you must use this tool!",
+    "Search for information about the owner, the developer of this project. For any questions about owner of project or the information about developer or owner of the project, you must use this tool!",
 )
 
 
@@ -70,16 +70,13 @@ Here is an example:
         Is that right?
 ```
 If the user answer yes or Yes or anything that similar for that, you can invoke the tool with all information you have.\
-Otherwise please answer user appropriately.
-
-
-If they not ask for the tool or the information of the owner of this project, reject the question and  response them appropriate.
+If they not ask for the tool reject the question and  response them appropriate with main reason due to limit resource you denied to question them.
 
 """
 MEMORY_KEY = "chat_history"
 
 prompt = ChatPromptTemplate.from_messages(
-    [
+    [git
         (
             "system",
             system_prompt,

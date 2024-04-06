@@ -1,4 +1,5 @@
-I'm Hoang Pham, a software engineer currently working at ExecutionLab
+# I'm Hoang Pham, a software engineer currently working at ExecutionLab
+
 I have a passion for clean code, Dart, Python, specialy in mobile and ai field
 
 My current side project is about learn LLM's.
@@ -6,7 +7,7 @@ My current side project is about learn LLM's.
 Below is my CV information.
 
 PHAM DUC HOANG
-Ho Chi Minh, Vietnam | hoangduc.uit.dev@gmail.com | (+84) 376385401 | Linkedin Software engineering student, being eager to build products
+Ho Chi Minh, Vietnam | <hoangduc.uit.dev@gmail.com> | (+84) 376385401 | Linkedin Software engineering student, being eager to build products
 EDUCATION
 University of Information Technology – VNUHCM Jun 2019 - present
 • Major: Software Engineering, GPA: 8.56/10
