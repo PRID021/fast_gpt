@@ -40,8 +40,6 @@ def multiply(first_int: int, second_int: int) -> int:
     return first_int * second_int
 
 
-
-
 @tool
 def delay(s: int):
     """Delay in s in seconds time"""
@@ -51,5 +49,5 @@ def delay(s: int):
 @tool
 def create_account(username: str, email: str, address: str) -> str:
     """Use tool to create account"""
-    
+
     return json.dumps({"username": username, "email": email, "address": address})

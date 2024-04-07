@@ -11,7 +11,7 @@ from .data.database import engine
 from .data.schemas import Token
 
 # routers
-from .routers import authenticate, chat, profile,gemi
+from .routers import authenticate, chat, gemi, profile
 from .utils import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     authenticate_user,

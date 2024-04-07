@@ -76,7 +76,7 @@ If they not ask for the tool reject the question and  response them appropriate 
 MEMORY_KEY = "chat_history"
 
 prompt = ChatPromptTemplate.from_messages(
-    [git
+    [
         (
             "system",
             system_prompt,
