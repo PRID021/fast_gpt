@@ -14,5 +14,3 @@ settings = Settings(
     _env_file_encoding="utf-8",
 )
 
-
-print("17:", settings)
