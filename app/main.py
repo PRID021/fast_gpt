@@ -1,6 +1,10 @@
+import logging
+from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import Annotated
 
+from alembic import command
+from alembic.config import Config
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
@@ -24,7 +28,28 @@ from .utils import (
 models.Base.metadata.create_all(bind=engine)
 
 
-app = FastAPI(title="Fast GPT", description="Hand-on practice python and openai")
+log = logging.getLogger("uvicorn")
+
+
+def run_migrations():
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
+
+
+@asynccontextmanager
+async def lifespan(app_: FastAPI):
+    log.info("Starting up...")
+    log.info("run alembic upgrade head...")
+    run_migrations()
+    yield
+    log.info("Shutting down...")
+
+
+app = FastAPI(
+    title="Fast GPT",
+    description="Hand-on practice python and openai",
+    lifespan=lifespan,
+)
 origins = ["*"]
 
 app.add_middleware(

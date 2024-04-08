@@ -18,14 +18,14 @@ services:
       dockerfile: Dockerfile
     container_name: server
     volumes:
-      - ./app:/server/app
-      - ./migrations:/server/migrations
+      - ./app:/app
+      - ./migrations:/migrations
     env_file:
       - .env
     ports:
       - 8080:8080
     depends_on:
-      - postgres
+      - postgres 
 
 volumes:
   postgres_data:

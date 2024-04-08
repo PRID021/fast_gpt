@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from ..setting import settings
 
-SQLALCHEMY_DATABASE_URL = settings.DB_URI
+SQLALCHEMY_DATABASE_URL = settings.LOCAL_DB_URI
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     echo=True,
